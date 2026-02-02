@@ -34,6 +34,7 @@ import {
 import { processData } from "@/utils/dataParser";
 import { useAuth } from "@/contexts/AuthContext";
 import { addReportToHistory, getSettings } from "@/utils/storage";
+import { ModeToggle } from "@/components/mode-toggle";
 
 const TABS = [
   { id: "report", label: "New Report", icon: FileText },
@@ -163,21 +164,23 @@ export default function Dashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
+      <header className="bg-background border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div
               className="flex items-center gap-3 cursor-pointer"
               onClick={handleLogoClick}
             >
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">AutoReport</h1>
-                <p className="text-xs text-gray-500">
+                <h1 className="text-xl font-bold text-foreground">
+                  AutoReport
+                </h1>
+                <p className="text-xs text-muted-foreground">
                   Automated Reporting & Data Recap System
                 </p>
               </div>
@@ -194,8 +197,8 @@ export default function Dashboard() {
                       onClick={() => setActiveTab(tab.id)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         activeTab === tab.id
-                          ? "bg-blue-100 text-blue-700"
-                          : "text-gray-600 hover:bg-gray-100"
+                          ? "bg-primary/10 text-primary dark:bg-primary/20"
+                          : "text-muted-foreground hover:bg-muted"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -205,13 +208,18 @@ export default function Dashboard() {
                 })}
               </nav>
 
+              {/* Theme Toggle */}
+              <div className="flex items-center">
+                <ModeToggle />
+              </div>
+
               {/* User Menu */}
-              <div className="flex items-center gap-3 pl-6 border-l">
+              <div className="flex items-center gap-3 pl-6 border-l border-border">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-foreground">
                     {user?.name}
                   </p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1 justify-end">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
                     {isAdmin ? (
                       <>
                         <Shield className="w-3 h-3" /> Admin
@@ -225,7 +233,7 @@ export default function Dashboard() {
                 </div>
                 <button
                   onClick={logout}
-                  className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                  className="p-2 text-muted-foreground hover:text-destructive transition-colors"
                   title="Logout"
                 >
                   <LogOut className="w-5 h-5" />
@@ -237,7 +245,7 @@ export default function Dashboard() {
       </header>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden bg-white border-b">
+      <div className="md:hidden bg-background border-b">
         <div className="flex overflow-x-auto">
           {TABS.filter((tab) => !tab.adminOnly || isAdmin).map((tab) => {
             const Icon = tab.icon;
@@ -247,8 +255,8 @@ export default function Dashboard() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
                   activeTab === tab.id
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600"
+                    ? "text-primary border-b-2 border-primary"
+                    : "text-muted-foreground"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -262,7 +270,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
             {error}
           </div>
         )}
@@ -271,7 +279,7 @@ export default function Dashboard() {
         {activeTab === "report" && (
           <>
             {/* Progress Steps */}
-            <div className="bg-white border rounded-lg mb-6">
+            <div className="bg-background border border-border rounded-lg mb-6">
               <div className="px-4 sm:px-6 py-4">
                 <div className="flex items-center">
                   {STEPS.map((step, index) => {
@@ -281,10 +289,10 @@ export default function Dashboard() {
                     return (
                       <React.Fragment key={step.id}>
                         <div
-                          className={`flex items-center gap-2 ${isActive ? "text-blue-600" : isCompleted ? "text-green-600" : "text-gray-400"}`}
+                          className={`flex items-center gap-2 ${isActive ? "text-primary" : isCompleted ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}`}
                         >
                           <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? "bg-blue-100" : isCompleted ? "bg-green-100" : "bg-gray-100"}`}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? "bg-primary/10" : isCompleted ? "bg-green-100 dark:bg-green-900/30" : "bg-muted"}`}
                           >
                             {isCompleted ? (
                               <CheckCircle2 className="w-5 h-5" />
@@ -297,7 +305,7 @@ export default function Dashboard() {
                           </span>
                         </div>
                         {index < STEPS.length - 1 && (
-                          <ChevronRight className="w-5 h-5 text-gray-300 mx-2" />
+                          <ChevronRight className="w-5 h-5 text-border mx-2" />
                         )}
                       </React.Fragment>
                     );
@@ -309,11 +317,11 @@ export default function Dashboard() {
             {/* Step 1: Upload */}
             {currentStep === 0 && (
               <div className="max-w-2xl mx-auto">
-                <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <div className="bg-background rounded-xl shadow-sm border border-border p-6 mb-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-2">
                     Upload Your Data
                   </h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-muted-foreground mb-6">
                     Start by uploading your Excel or CSV file. We&apos;ll
                     automatically detect the structure and help you map the
                     columns.
@@ -323,8 +331,8 @@ export default function Dashboard() {
                     onError={handleError}
                   />
                 </div>
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <div className="bg-background rounded-xl shadow-sm border border-border p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">
                     Select Report Template
                   </h3>
                   <div className="space-y-3">
@@ -333,8 +341,8 @@ export default function Dashboard() {
                         key={template.id}
                         className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
                           selectedTemplate.id === template.id
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-muted-foreground"
                         }`}
                       >
                         <input
@@ -343,20 +351,20 @@ export default function Dashboard() {
                           value={template.id}
                           checked={selectedTemplate.id === template.id}
                           onChange={() => setSelectedTemplate(template)}
-                          className="mt-1 w-4 h-4 text-blue-600"
+                          className="mt-1 w-4 h-4 text-primary"
                         />
                         <div>
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-semibold text-foreground">
                             {template.name}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-muted-foreground">
                             {template.description}
                           </p>
                           <div className="mt-2 flex flex-wrap gap-1">
                             {template.requiredFields.map((field) => (
                               <span
                                 key={field}
-                                className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded"
+                                className="px-2 py-0.5 bg-destructive/10 text-destructive text-xs rounded"
                               >
                                 {field} *
                               </span>
@@ -373,13 +381,13 @@ export default function Dashboard() {
             {/* Step 2: Map Columns */}
             {currentStep === 1 && (
               <div className="max-w-5xl mx-auto">
-                <div className="bg-white rounded-xl shadow-sm p-6">
+                <div className="bg-background rounded-xl shadow-sm border border-border p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
+                      <h2 className="text-2xl font-bold text-foreground">
                         Map Columns
                       </h2>
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         File: <span className="font-medium">{fileName}</span> (
                         {data.length.toLocaleString()} rows)
                       </p>
@@ -387,14 +395,14 @@ export default function Dashboard() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setCurrentStep(0)}
-                        className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                        className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Back
                       </button>
                       <button
                         onClick={handleGenerateReport}
                         disabled={!allRequiredFieldsMapped}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         Generate Report
                       </button>
@@ -420,13 +428,13 @@ export default function Dashboard() {
             {/* Step 3: Preview & Export */}
             {currentStep === 2 && processedData && (
               <div className="max-w-6xl mx-auto">
-                <div className="bg-white rounded-xl shadow-sm p-6">
+                <div className="bg-background rounded-xl shadow-sm border border-border p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
+                      <h2 className="text-2xl font-bold text-foreground">
                         Report Preview
                       </h2>
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         Review your report and export it in your preferred
                         format
                       </p>
@@ -434,22 +442,22 @@ export default function Dashboard() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setCurrentStep(1)}
-                        className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                        className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Back
                       </button>
                       <button
                         onClick={resetReport}
-                        className="px-4 py-2 text-blue-600 hover:text-blue-700 transition-colors"
+                        className="px-4 py-2 text-primary hover:text-primary/80 transition-colors"
                       >
                         New Report
                       </button>
                     </div>
                   </div>
-                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="mb-6 p-4 bg-muted rounded-lg border border-border">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-foreground mb-1">
                           Report Title
                         </label>
                         <input
@@ -461,12 +469,12 @@ export default function Dashboard() {
                               title: e.target.value,
                             }))
                           }
-                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-foreground"
                           placeholder="Enter report title"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-foreground mb-1">
                           Period
                         </label>
                         <select
@@ -477,7 +485,7 @@ export default function Dashboard() {
                               period: e.target.value,
                             }))
                           }
-                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-foreground"
                         >
                           <option value="">Select Period</option>
                           <option value="Daily">Daily</option>
@@ -498,9 +506,9 @@ export default function Dashboard() {
                               deleteAfterExport: e.target.checked,
                             }))
                           }
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-primary rounded focus:ring-ring"
                         />
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-foreground">
                           Delete uploaded data after export (for privacy)
                         </span>
                       </label>
@@ -529,9 +537,9 @@ export default function Dashboard() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-white border-t mt-auto">
+      <footer className="bg-background border-t mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-muted-foreground">
             Automated Reporting & Data Recap System • Built for schools,
             offices, and SMEs
           </p>

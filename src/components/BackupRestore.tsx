@@ -90,18 +90,20 @@ export default function BackupRestore() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="bg-background rounded-xl shadow-sm border border-border p-6">
       <div className="flex items-center gap-2 mb-6">
-        <Database className="w-5 h-5 text-gray-600" />
-        <h3 className="text-lg font-semibold">Data Management</h3>
+        <Database className="w-5 h-5 text-muted-foreground" />
+        <h3 className="text-lg font-semibold text-foreground">
+          Data Management
+        </h3>
       </div>
 
       {message && (
         <div
           className={`mb-6 p-4 rounded-lg flex items-center gap-2 ${
             message.type === "success"
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
+              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+              : "bg-destructive/10 text-destructive"
           }`}
         >
           {message.type === "success" ? (
@@ -114,30 +116,32 @@ export default function BackupRestore() {
       )}
 
       {/* Settings */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <h4 className="font-medium mb-4">Settings</h4>
+      <div className="mb-6 p-4 bg-muted rounded-lg border border-border">
+        <h4 className="font-medium text-foreground mb-4">Settings</h4>
         <div className="space-y-3">
-          <label className="flex items-center gap-3">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={settings.deleteAfterExport}
               onChange={(e) =>
                 handleSettingChange("deleteAfterExport", e.target.checked)
               }
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-primary rounded focus:ring-ring border-border"
             />
-            <span className="text-sm">
+            <span className="text-sm text-foreground">
               Delete uploaded data after export (for privacy)
             </span>
           </label>
           <div className="flex items-center gap-3">
-            <span className="text-sm">Default Period View:</span>
+            <span className="text-sm text-foreground">
+              Default Period View:
+            </span>
             <select
               value={settings.defaultPeriod}
               onChange={(e) =>
                 handleSettingChange("defaultPeriod", e.target.value)
               }
-              className="px-3 py-1 border rounded text-sm focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1 bg-background border border-input rounded text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-ring"
             >
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
@@ -150,12 +154,12 @@ export default function BackupRestore() {
 
       {/* Backup & Restore */}
       <div className="space-y-4">
-        <h4 className="font-medium">Backup & Restore</h4>
+        <h4 className="font-medium text-foreground">Backup & Restore</h4>
 
         <div className="flex flex-wrap gap-3">
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
             <Download className="w-4 h-4" />
             Export Backup
@@ -163,7 +167,7 @@ export default function BackupRestore() {
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
           >
             <Upload className="w-4 h-4" />
             Import Backup
@@ -178,8 +182,8 @@ export default function BackupRestore() {
           />
         </div>
 
-        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800">
+        <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <p className="text-sm text-yellow-800 dark:text-yellow-200">
             <strong>Tip:</strong> Regularly export backups to prevent data loss.
             Backup includes users, saved mappings, and report history.
           </p>
@@ -187,16 +191,16 @@ export default function BackupRestore() {
       </div>
 
       {/* Danger Zone */}
-      <div className="mt-8 pt-6 border-t">
-        <h4 className="font-medium text-red-600 mb-4">Danger Zone</h4>
+      <div className="mt-8 pt-6 border-t border-border">
+        <h4 className="font-medium text-destructive mb-4">Danger Zone</h4>
         <button
           onClick={handleClearAll}
-          className="flex items-center gap-2 px-4 py-2 border-2 border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 border-2 border-destructive/30 text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
         >
           <Trash2 className="w-4 h-4" />
           Clear All Data
         </button>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-sm text-muted-foreground mt-2">
           This will permanently delete all users, mappings, and report history.
         </p>
       </div>

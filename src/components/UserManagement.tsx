@@ -31,15 +31,17 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="bg-background rounded-xl shadow-sm border border-border p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-gray-600" />
-          <h3 className="text-lg font-semibold">User Management</h3>
+          <Users className="w-5 h-5 text-muted-foreground" />
+          <h3 className="text-lg font-semibold text-foreground">
+            User Management
+          </h3>
         </div>
         <button
           onClick={() => setIsAdding(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add User
@@ -47,12 +49,12 @@ export default function UserManagement() {
       </div>
 
       {isAdding && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <div className="mb-6 p-4 bg-muted rounded-lg border border-border">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="font-medium">Add New User</h4>
+            <h4 className="font-medium text-foreground">Add New User</h4>
             <button
               onClick={() => setIsAdding(false)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -65,66 +67,81 @@ export default function UserManagement() {
               onChange={(e) =>
                 setNewUser({ ...newUser, username: e.target.value })
               }
-              className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-foreground placeholder:text-muted-foreground"
             />
             <input
               type="text"
               placeholder="Full Name"
               value={newUser.name}
               onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-              className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-foreground placeholder:text-muted-foreground"
             />
             <select
               value={newUser.role}
               onChange={(e) =>
                 setNewUser({ ...newUser, role: e.target.value as UserRole })
               }
-              className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-foreground"
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
           </div>
-          <p className="text-sm text-gray-500 mt-2">
-            Password will be: {newUser.username}123
+          <p className="text-sm text-muted-foreground mt-2">
+            Password will be:{" "}
+            <span className="font-mono text-foreground">
+              {newUser.username}123
+            </span>
           </p>
           <button
             onClick={handleAddUser}
             disabled={!newUser.username || !newUser.name}
-            className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            className="mt-4 px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 disabled:opacity-50 transition-colors"
           >
             Create User
           </button>
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto border border-border rounded-lg">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
+          <thead className="bg-muted">
             <tr>
-              <th className="px-4 py-3 text-left font-medium">Name</th>
-              <th className="px-4 py-3 text-left font-medium">Username</th>
-              <th className="px-4 py-3 text-left font-medium">Role</th>
-              <th className="px-4 py-3 text-left font-medium">Created</th>
-              <th className="px-4 py-3 text-center font-medium">Actions</th>
+              <th className="px-4 py-3 text-left font-medium text-foreground">
+                Name
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-foreground">
+                Username
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-foreground">
+                Role
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-foreground">
+                Created
+              </th>
+              <th className="px-4 py-3 text-center font-medium text-foreground">
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-border bg-background">
             {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
+              <tr key={user.id} className="hover:bg-muted/50 transition-colors">
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <UserIcon className="w-4 h-4 text-gray-400" />
+                  <div className="flex items-center gap-2 text-foreground">
+                    <UserIcon className="w-4 h-4 text-muted-foreground" />
                     {user.name}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-gray-600">{user.username}</td>
+                <td className="px-4 py-3 text-muted-foreground">
+                  {user.username}
+                </td>
                 <td className="px-4 py-3">
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
                       user.role === "admin"
-                        ? "bg-purple-100 text-purple-700"
-                        : "bg-blue-100 text-blue-700"
+                        ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
+                        : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                     }`}
                   >
                     {user.role === "admin" ? (
@@ -135,13 +152,13 @@ export default function UserManagement() {
                     {user.role}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-gray-500">
+                <td className="px-4 py-3 text-muted-foreground">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-3 text-center">
                   <button
                     onClick={() => handleDeleteUser(user.id)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-destructive/70 hover:text-destructive transition-colors"
                     title="Delete user"
                   >
                     <Trash2 className="w-4 h-4" />
