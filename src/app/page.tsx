@@ -16,7 +16,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
-import { ModeToggle } from "@/components/mode-toggle";
+import { ModeToggle } from "@/components/layout/mode-toggle";
 
 export default function LandingPage() {
   return (
@@ -374,7 +374,7 @@ export default function LandingPage() {
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center justify-center gap-2 px-10 py-5 bg-white text-blue-600 rounded-xl hover:bg-gray-100 transition-all font-semibold text-lg shadow-lg"
+            className="inline-flex items-center justify-center gap-2 px-10 py-5 bg-white text-blue-600 rounded-xl hover:bg-white/90 dark:hover:bg-white/80 transition-all font-semibold text-lg shadow-lg"
           >
             Upload Your File Now
             <ArrowRight className="w-5 h-5" />
