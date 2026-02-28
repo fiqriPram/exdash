@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 46, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/ACER/Desktop/exdash/src/app/api/auth/me/route.ts"],"sourcesContent":["import { NextRequest, NextResponse } from \"next/server\";\n\nexport async function GET(request: NextRequest) {\n  const sessionCookie = request.cookies.get(\"autoreport_session\");\n\n  if (!sessionCookie) {\n    return NextResponse.json(\n      { authenticated: false },\n      { status: 401 }\n    );\n  }\n\n  try {\n    const session = JSON.parse(sessionCookie.value);\n    \n    return NextResponse.json({\n      authenticated: true,\n      user: session.user,\n    });\n  } catch {\n    return NextResponse.json(\n      { authenticated: false },\n      { status: 401 }\n    );\n  }\n}\n"],"names":[],"mappings":";;;;AAAA;;AAEO,eAAe,IAAI,OAAoB;IAC5C,MAAM,gBAAgB,QAAQ,OAAO,CAAC,GAAG,CAAC;IAE1C,IAAI,CAAC,eAAe;QAClB,OAAO,qKAAY,CAAC,IAAI,CACtB;YAAE,eAAe;QAAM,GACvB;YAAE,QAAQ;QAAI;IAElB;IAEA,IAAI;QACF,MAAM,UAAU,KAAK,KAAK,CAAC,cAAc,KAAK;QAE9C,OAAO,qKAAY,CAAC,IAAI,CAAC;YACvB,eAAe;YACf,MAAM,QAAQ,IAAI;QACpB;IACF,EAAE,OAAM;QACN,OAAO,qKAAY,CAAC,IAAI,CACtB;YAAE,eAAe;QAAM,GACvB;YAAE,QAAQ;QAAI;IAElB;AACF"}}]
-}
