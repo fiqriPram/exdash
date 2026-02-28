@@ -6,6 +6,7 @@ import {
   DataSummary,
   ProcessedData,
 } from "@/types";
+import { parsePDFFile as parsePdfFile } from "./pdfParser";
 
 export function parseExcelFile(file: File): Promise<DataRow[]> {
   return new Promise((resolve, reject) => {
@@ -101,6 +102,10 @@ export function parseCSVFile(file: File): Promise<DataRow[]> {
     reader.onerror = () => reject(new Error("Failed to read file"));
     reader.readAsText(file);
   });
+}
+
+export function parsePDFFile(file: File): Promise<DataRow[]> {
+  return parsePdfFile(file);
 }
 
 export function validateData(

@@ -4,6 +4,9 @@
 import path from "path";
 import * as XLSX from "xlsx";
 import { parse } from "csv-parse/sync";
+import PDFParser from "pdf2json";
+import { createWorker } from "tesseract.js";
+import { createCanvas } from "canvas";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
 import { 
@@ -94,6 +97,125 @@ export function extractExcelColumns(buffer: Buffer): string[] {
 }
 
 /**
+ * Extract columns from PDF buffer
+ */
+export async function extractPdfColumns(buffer: Buffer): Promise<string[]> {
+  // First try text extraction
+  const textColumns = await extractPdfTextColumns(buffer);
+  
+  if (textColumns.length > 0) {
+    return textColumns;
+  }
+  
+  // If no text found, try OCR
+  logger.info("No text found in PDF, attempting OCR...");
+  const ocrColumns = await extractPdfOcrColumns(buffer);
+  
+  return ocrColumns;
+}
+
+/**
+ * Extract columns from PDF using text extraction
+ */
+async function extractPdfTextColumns(buffer: Buffer): Promise<string[]> {
+  return new Promise((resolve) => {
+    try {
+      const pdfParser = new PDFParser();
+      
+      pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+        if (!pdfData || !pdfData.pages) {
+          resolve([]);
+          return;
+        }
+        
+        let allText = "";
+        for (const page of pdfData.pages) {
+          if (page.Texts) {
+            for (const textItem of page.Texts) {
+              if (textItem.R) {
+                for (const run of textItem.R) {
+                  if (run.T) {
+                    allText += decodeURIComponent(run.T as string) + " ";
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        const lines = allText.split(/\n|\r/).filter(line => line.trim());
+        if (lines.length === 0) {
+          resolve([]);
+          return;
+        }
+        
+        const firstLine = lines[0];
+        const columns = firstLine.split(/[\t,]+/).map(col => col.trim().replace(/^"|"$/g, "")).filter(col => col);
+        
+        resolve(columns.length > 0 ? columns : []);
+      });
+      
+      pdfParser.on("pdfParser_dataError", () => {
+        resolve([]);
+      });
+      
+      pdfParser.parseBuffer(buffer);
+    } catch (error) {
+      logger.error("PDF parsing error", error);
+      resolve([]);
+    }
+  });
+}
+
+/**
+ * Extract columns from PDF using OCR
+ */
+async function extractPdfOcrColumns(buffer: Buffer): Promise<string[]> {
+  try {
+    const pdfjs = await import("pdfjs-dist");
+    pdfjs.GlobalWorkerOptions.workerSrc = "";
+    
+    const pdf = await pdfjs.getDocument({ data: buffer }).promise;
+    const worker = await createWorker("eng");
+    
+    let allText = "";
+    
+    for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 2.0 });
+      
+      const canvas = createCanvas(viewport.width, viewport.height);
+      const ctx = canvas.getContext("2d") as any;
+      if (!ctx) continue;
+      
+      await page.render({
+        canvasContext: ctx,
+        viewport: viewport,
+      } as any).promise;
+      
+      const imageBuffer = canvas.toBuffer("image/png");
+      const { data: { text } } = await worker.recognize(imageBuffer);
+      allText += text + "\n";
+    }
+    
+    await worker.terminate();
+    
+    const lines = allText.split(/\n|\r/).filter(line => line.trim());
+    if (lines.length === 0) {
+      return [];
+    }
+    
+    const firstLine = lines[0];
+    const columns = firstLine.split(/[\t,]+/).map(col => col.trim().replace(/^"|"$/g, "")).filter(col => col);
+    
+    return columns.length > 0 ? columns : [];
+  } catch (error) {
+    logger.error("PDF OCR error", error);
+    return [];
+  }
+}
+
+/**
  * Parse CSV preview rows
  */
 export function parseCsvPreview(buffer: Buffer, columns: string[], limit: number = 10): Record<string, string | number>[] {
@@ -135,7 +257,152 @@ export function parseExcelPreview(buffer: Buffer, limit: number = 10): Record<st
 }
 
 /**
- * Upload file and store metadata
+ * Parse PDF preview rows
+ */
+export async function parsePdfPreview(buffer: Buffer, columns: string[], limit: number = 10): Promise<Record<string, string | number>[]> {
+  // First try text extraction
+  const textRows = await extractPdfTextPreview(buffer, columns, limit);
+  
+  if (textRows.length > 0) {
+    return textRows;
+  }
+  
+  // If no text found, try OCR
+  logger.info("No text found in PDF preview, attempting OCR...");
+  const ocrRows = await extractPdfOcrPreview(buffer, columns, limit);
+  
+  return ocrRows;
+}
+
+/**
+ * Extract preview rows from PDF using text extraction
+ */
+async function extractPdfTextPreview(buffer: Buffer, columns: string[], limit: number): Promise<Record<string, string | number>[]> {
+  return new Promise((resolve) => {
+    try {
+      const pdfParser = new PDFParser();
+      
+      pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+        if (!pdfData || !pdfData.pages) {
+          resolve([]);
+          return;
+        }
+        
+        let allText = "";
+        for (const page of pdfData.pages) {
+          if (page.Texts) {
+            for (const textItem of page.Texts) {
+              if (textItem.R) {
+                for (const run of textItem.R) {
+                  if (run.T) {
+                    allText += decodeURIComponent(run.T as string) + "\n";
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        const lines = allText.split(/\n|\r/).filter(line => line.trim());
+        if (lines.length <= 1) {
+          resolve([]);
+          return;
+        }
+        
+        const rows: Record<string, string | number>[] = [];
+        const headers = columns;
+        
+        for (let i = 1; i < Math.min(lines.length, limit + 1); i++) {
+          const values = lines[i].split(/[\t,]+/).map(v => v.trim().replace(/^"|"$/g, ""));
+          const row: Record<string, string | number> = {};
+          
+          for (let j = 0; j < Math.min(headers.length, values.length); j++) {
+            row[headers[j]] = values[j];
+          }
+          
+          if (Object.keys(row).length > 0) {
+            rows.push(row);
+          }
+        }
+        
+        resolve(rows);
+      });
+      
+      pdfParser.on("pdfParser_dataError", () => {
+        resolve([]);
+      });
+      
+      pdfParser.parseBuffer(buffer);
+    } catch (error) {
+      logger.error("PDF preview parsing error", error);
+      resolve([]);
+    }
+  });
+}
+
+/**
+ * Extract preview rows from PDF using OCR
+ */
+async function extractPdfOcrPreview(buffer: Buffer, columns: string[], limit: number): Promise<Record<string, string | number>[]> {
+  try {
+    const pdfjs = await import("pdfjs-dist");
+    pdfjs.GlobalWorkerOptions.workerSrc = "";
+    
+    const pdf = await pdfjs.getDocument({ data: buffer }).promise;
+    const worker = await createWorker("eng");
+    
+    let allText = "";
+    
+    for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 2.0 });
+      
+      const canvas = createCanvas(viewport.width, viewport.height);
+      const ctx = canvas.getContext("2d") as any;
+      if (!ctx) continue;
+      
+      await page.render({
+        canvasContext: ctx,
+        viewport: viewport,
+      } as any).promise;
+      
+      const imageBuffer = canvas.toBuffer("image/png");
+      const { data: { text } } = await worker.recognize(imageBuffer);
+      allText += text + "\n";
+    }
+    
+    await worker.terminate();
+    
+    const lines = allText.split(/\n|\r/).filter(line => line.trim());
+    if (lines.length <= 1) {
+      return [];
+    }
+    
+    const rows: Record<string, string | number>[] = [];
+    const headers = columns;
+    
+    for (let i = 1; i < Math.min(lines.length, limit + 1); i++) {
+      const values = lines[i].split(/[\t,]+/).map(v => v.trim().replace(/^"|"$/g, ""));
+      const row: Record<string, string | number> = {};
+      
+      for (let j = 0; j < Math.min(headers.length, values.length); j++) {
+        row[headers[j]] = values[j];
+      }
+      
+      if (Object.keys(row).length > 0) {
+        rows.push(row);
+      }
+    }
+    
+    return rows;
+  } catch (error) {
+    logger.error("PDF OCR preview error", error);
+    return [];
+  }
+}
+
+/**
+ * Upload file and store metapdfData
  */
 export async function uploadFile(file: File): Promise<UploadResult> {
   const validation = validateFile(file);
@@ -160,6 +427,8 @@ export async function uploadFile(file: File): Promise<UploadResult> {
 
   if (fileExtension === "csv") {
     columns = extractCsvColumns(buffer);
+  } else if (fileExtension === "pdf") {
+    columns = await extractPdfColumns(buffer);
   } else {
     columns = extractExcelColumns(buffer);
   }
@@ -169,8 +438,8 @@ export async function uploadFile(file: File): Promise<UploadResult> {
     throw new Error("No columns found in file");
   }
 
-  // Store metadata
-  const metadata: FileMetadata = {
+  // Store metapdfData
+  const metapdfData: FileMetadata = {
     fileId,
     originalName: file.name,
     filePath,
@@ -179,8 +448,8 @@ export async function uploadFile(file: File): Promise<UploadResult> {
     uploadedAt: new Date().toISOString(),
   };
 
-  const metadataPath = path.join(tempDir, `${fileId}.json`);
-  await writeJsonFile(metadataPath, metadata);
+  const metapdfDataPath = path.join(tempDir, `${fileId}.json`);
+  await writeJsonFile(metapdfDataPath, metapdfData);
 
   logger.info("File uploaded", { fileId, originalName: file.name, columns: columns.length });
 
@@ -192,25 +461,27 @@ export async function uploadFile(file: File): Promise<UploadResult> {
 }
 
 /**
- * Parse file and return preview data
+ * Parse file and return preview pdfData
  */
 export async function parseFile(fileId: string, previewLimit: number = 10): Promise<ParseResult> {
   const tempDir = getTempDir();
   
-  // Read metadata
-  const metadata = await readJsonFile<FileMetadata>(path.join(tempDir, `${fileId}.json`));
-  if (!metadata) {
+  // Read metapdfData
+  const metapdfData = await readJsonFile<FileMetadata>(path.join(tempDir, `${fileId}.json`));
+  if (!metapdfData) {
     throw new Error(ERROR_MESSAGES.FILE_NOT_FOUND);
   }
 
   // Read file content
   const fs = await import("fs");
-  const fileBuffer = await fs.promises.readFile(metadata.filePath);
+  const fileBuffer = await fs.promises.readFile(metapdfData.filePath);
 
   let preview: Record<string, string | number>[] = [];
 
-  if (metadata.fileType === "csv") {
-    preview = parseCsvPreview(fileBuffer, metadata.columns, previewLimit);
+  if (metapdfData.fileType === "csv") {
+    preview = parseCsvPreview(fileBuffer, metapdfData.columns, previewLimit);
+  } else if (metapdfData.fileType === "pdf") {
+    preview = await parsePdfPreview(fileBuffer, metapdfData.columns, previewLimit);
   } else {
     preview = parseExcelPreview(fileBuffer, previewLimit);
   }
@@ -219,13 +490,13 @@ export async function parseFile(fileId: string, previewLimit: number = 10): Prom
 
   return {
     preview,
-    columns: metadata.columns,
+    columns: metapdfData.columns,
     totalRows: preview.length,
   };
 }
 
 /**
- * Get file metadata
+ * Get file metapdfData
  */
 export async function getFileMetadata(fileId: string): Promise<FileMetadata | null> {
   const tempDir = getTempDir();
@@ -233,20 +504,20 @@ export async function getFileMetadata(fileId: string): Promise<FileMetadata | nu
 }
 
 /**
- * Delete file and its metadata
+ * Delete file and its metapdfData
  */
 export async function deleteUploadedFile(fileId: string): Promise<boolean> {
   const tempDir = getTempDir();
   
-  const metadata = await readJsonFile<FileMetadata>(path.join(tempDir, `${fileId}.json`));
-  if (!metadata) {
+  const metapdfData = await readJsonFile<FileMetadata>(path.join(tempDir, `${fileId}.json`));
+  if (!metapdfData) {
     return false;
   }
 
   // Delete file
-  await deleteFile(metadata.filePath);
+  await deleteFile(metapdfData.filePath);
   
-  // Delete metadata
+  // Delete metapdfData
   await deleteFile(path.join(tempDir, `${fileId}.json`));
 
   logger.info("File deleted", { fileId });

@@ -14,8 +14,8 @@ export const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 // File Upload
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-export const ALLOWED_FILE_TYPES = ["text/csv", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"];
-export const ALLOWED_EXTENSIONS = [".csv", ".xls", ".xlsx"];
+export const ALLOWED_FILE_TYPES = ["text/csv", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/pdf"];
+export const ALLOWED_EXTENSIONS = [".csv", ".xls", ".xlsx", ".pdf"];
 
 // Report Generation
 export const MAX_PREVIEW_ROWS = 100;
@@ -58,7 +58,7 @@ export const ERROR_MESSAGES = {
   SESSION_EXPIRED: "Session has expired",
   FILE_NOT_FOUND: "File not found or expired",
   REPORT_NOT_FOUND: "Report not found",
-  INVALID_FILE_TYPE: "Invalid file type. Please upload CSV or Excel files only.",
+  INVALID_FILE_TYPE: "Invalid file type. Please upload CSV, Excel, or PDF files only.",
   FILE_TOO_LARGE: "File is too large. Maximum size is 10MB.",
   INVALID_REQUEST_DATA: "Invalid request data",
   MISSING_MAPPING: "No column mapping found. Please map columns first.",

@@ -68,8 +68,8 @@ function FileUploadAPI({
 
     try {
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
-      if (!["xlsx", "xls", "csv"].includes(fileExtension || "")) {
-        throw new Error("Unsupported file format. Please upload .xlsx, .xls, or .csv files.");
+      if (!["xlsx", "xls", "csv", "pdf"].includes(fileExtension || "")) {
+        throw new Error("Unsupported file format. Please upload .xlsx, .xls, .csv, or .pdf files.");
       }
 
       const formData = new FormData();
@@ -135,7 +135,7 @@ function FileUploadAPI({
       >
         <input
           type="file"
-          accept=".xlsx,.xls,.csv"
+          accept=".xlsx,.xls,.csv,.pdf"
           onChange={onFileInput}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={isUploading}
@@ -163,7 +163,7 @@ function FileUploadAPI({
               </div>
               <div>
                 <p className="text-lg font-medium text-foreground">Drop your file here, or click to browse</p>
-                <p className="text-sm text-muted-foreground mt-1">Supports Excel (.xlsx, .xls) and CSV files (max 5MB)</p>
+                <p className="text-sm text-muted-foreground mt-1">Supports Excel (.xlsx, .xls), CSV and PDF files (max 5MB)</p>
               </div>
             </>
           )}
@@ -177,6 +177,10 @@ function FileUploadAPI({
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <FileText className="w-4 h-4" />
           <span>CSV files</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <FileText className="w-4 h-4" />
+          <span>PDF files</span>
         </div>
       </div>
       <div className="mt-4 flex items-start gap-2 text-sm text-muted-foreground bg-muted p-3 rounded-lg">

@@ -8,7 +8,7 @@ import {
   AlertCircle,
   Check,
 } from "lucide-react";
-import { parseExcelFile, parseCSVFile } from "@/utils/dataParser";
+import { parseExcelFile, parseCSVFile, parsePDFFile } from "@/utils/dataParser";
 import { DataRow } from "@/types";
 
 interface FileUploadProps {
@@ -33,9 +33,11 @@ export default function FileUpload({ onDataLoaded, onError }: FileUploadProps) {
         data = await parseExcelFile(file);
       } else if (fileExtension === "csv") {
         data = await parseCSVFile(file);
+      } else if (fileExtension === "pdf") {
+        data = await parsePDFFile(file);
       } else {
         throw new Error(
-          "Unsupported file format. Please upload .xlsx, .xls, or .csv files.",
+          "Unsupported file format. Please upload .xlsx, .xls, .csv, or .pdf files.",
         );
       }
 
@@ -99,7 +101,7 @@ export default function FileUpload({ onDataLoaded, onError }: FileUploadProps) {
       >
         <input
           type="file"
-          accept=".xlsx,.xls,.csv"
+          accept=".xlsx,.xls,.csv,.pdf"
           onChange={onFileInput}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={isLoading}
@@ -132,7 +134,7 @@ export default function FileUpload({ onDataLoaded, onError }: FileUploadProps) {
                   Drop your file here, or click to browse
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  Supports Excel (.xlsx, .xls) and CSV files
+                  Supports Excel (.xlsx, .xls), CSV and PDF files
                 </p>
               </div>
             </>
@@ -148,6 +150,10 @@ export default function FileUpload({ onDataLoaded, onError }: FileUploadProps) {
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <FileText className="w-4 h-4" />
           <span>CSV files</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <FileText className="w-4 h-4" />
+          <span>PDF files</span>
         </div>
       </div>
 
