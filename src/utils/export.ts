@@ -41,10 +41,10 @@ export function exportToPDF(
     yPos += 6;
   }
 
-  // Table data
+  // Table data - data already has targetField keys from the API
   const tableHeaders = mappings.map((m) => m.targetField);
   const tableData = rawData.map((row) =>
-    mappings.map((m) => formatValue(row[m.sourceColumn], m.dataType)),
+    mappings.map((m) => formatValue(row[m.targetField] ?? row[m.sourceColumn], m.dataType)),
   );
 
   // Generate table
@@ -106,11 +106,12 @@ export function exportToExcel(
   // Create workbook
   const wb = XLSX.utils.book_new();
 
-  // Main data sheet
+  // Main data sheet - data already has targetField keys from the API
   const mappedData = rawData.map((row) => {
     const mappedRow: DataRow = {};
     mappings.forEach((m) => {
-      mappedRow[m.targetField] = row[m.sourceColumn];
+      // Use targetField since API returns data with mapped keys
+      mappedRow[m.targetField] = row[m.targetField] ?? row[m.sourceColumn];
     });
     return mappedRow;
   });

@@ -79,8 +79,8 @@ export default function SavedMappings({
         <div
           className={`p-3 rounded-lg flex items-center gap-2 ${
             message.type === "success"
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
+              ? "bg-green-500/10 text-green-400"
+              : "bg-red-500/10 text-red-400"
           }`}
         >
           {message.type === "success" ? (
@@ -96,7 +96,7 @@ export default function SavedMappings({
         <button
           onClick={() => setShowSaveDialog(true)}
           disabled={currentMappings.length === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
         >
           <Save className="w-4 h-4" />
           Save Current Mapping
@@ -104,8 +104,8 @@ export default function SavedMappings({
       </div>
 
       {showSaveDialog && (
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="p-4 bg-muted rounded-lg">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Mapping Name
           </label>
           <div className="flex gap-2">
@@ -114,7 +114,7 @@ export default function SavedMappings({
               value={mappingName}
               onChange={(e) => setMappingName(e.target.value)}
               placeholder="e.g., January 2024 Financial"
-              className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring"
             />
             <button
               onClick={handleSaveMapping}
@@ -134,24 +134,24 @@ export default function SavedMappings({
       )}
 
       {mappings.length > 0 && (
-        <div className="border rounded-lg overflow-hidden">
-          <div className="px-4 py-3 bg-gray-50 border-b">
+        <div className="border border-border rounded-lg overflow-hidden">
+          <div className="px-4 py-3 bg-muted border-b">
             <div className="flex items-center gap-2">
-              <FolderOpen className="w-4 h-4 text-gray-600" />
-              <span className="font-medium">
+              <FolderOpen className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium text-foreground">
                 Saved Mappings for {template.name}
               </span>
             </div>
           </div>
-          <div className="divide-y">
+          <div className="divide-y divide-border">
             {mappings.map((mapping) => (
               <div
                 key={mapping.id}
-                className="px-4 py-3 flex items-center justify-between hover:bg-muted/50 dark:hover:bg-muted/20"
+                className="px-4 py-3 flex items-center justify-between hover:bg-muted/50"
               >
                 <div>
-                  <p className="font-medium text-gray-900">{mapping.name}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-medium text-foreground">{mapping.name}</p>
+                  <p className="text-sm text-muted-foreground">
                     {mapping.mappings.length} columns mapped •{" "}
                     {new Date(mapping.updatedAt).toLocaleDateString()}
                   </p>

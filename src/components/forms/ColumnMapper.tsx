@@ -36,16 +36,16 @@ export default function ColumnMapper({
   }, [columns]);
 
   const handleAutoMap = () => {
-    const autoMappings = autoMapColumns(columns, [
-      ...template.requiredFields,
-      ...template.optionalFields,
-    ]);
+    const targetFields = template?.requiredFields 
+      ? [...template.requiredFields, ...(template.optionalFields || [])]
+      : [];
+    
+    const autoMappings = autoMapColumns(columns, targetFields);
     setMappings(autoMappings);
     setAutoMapped(true);
 
-    if (autoMappings.length > 0) {
-      onMappingComplete(autoMappings);
-    }
+    // Always call callback to update UI
+    onMappingComplete(autoMappings);
   };
 
   const handleMappingChange = (
@@ -106,9 +106,10 @@ export default function ColumnMapper({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Settings className="w-5 h-5 text-muted-foreground" />
-          <h3 className="text-lg font-semibold">Column Mapping</h3>
+          <h3 className="text-lg font-semibold text-foreground">Column Mapping</h3>
         </div>
         <button
+          type="button"
           onClick={handleAutoMap}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
         >
@@ -131,8 +132,8 @@ export default function ColumnMapper({
               key={field}
               className={`px-3 py-1 text-xs font-medium rounded-full ${
                 status === "mapped"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
+                  ? "bg-green-500/20 text-green-400"
+                  : "bg-red-500/20 text-red-400"
               }`}
             >
               {status === "mapped" ? (
@@ -150,7 +151,7 @@ export default function ColumnMapper({
           return (
             <span
               key={field}
-              className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700"
+              className="px-3 py-1 text-xs font-medium rounded-full bg-blue-500/20 text-blue-400"
             >
               <Check className="w-3 h-3 inline mr-1" />
               {field}
@@ -160,28 +161,9 @@ export default function ColumnMapper({
       </div>
 
       {/* Mapping Table */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-700">
-                Source Column
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-gray-700">
-                Target Field
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-gray-700">
-                Data Type
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-gray-700">
-                Preview
-              </th>
-              <th className="px-4 py-3 text-center font-medium text-gray-700">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-border">
             {mappings.map((mapping, index) => (
               <tr key={index} className="hover:bg-muted/50 dark:hover:bg-muted/20">
                 <td className="px-4 py-3">
@@ -190,7 +172,7 @@ export default function ColumnMapper({
                     onChange={(e) =>
                       handleMappingChange(index, "sourceColumn", e.target.value)
                     }
-                    className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 bg-background border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-foreground"
                   >
                     {columns.map((col) => (
                       <option key={col} value={col}>
@@ -207,7 +189,7 @@ export default function ColumnMapper({
                       handleMappingChange(index, "targetField", e.target.value)
                     }
                     placeholder="Field name"
-                    className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 bg-background border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-foreground"
                     list="target-fields"
                   />
                   <datalist id="target-fields">
@@ -225,7 +207,7 @@ export default function ColumnMapper({
                     onChange={(e) =>
                       handleMappingChange(index, "dataType", e.target.value)
                     }
-                    className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 bg-background border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-foreground"
                   >
                     {DATA_TYPES.map((type) => (
                       <option key={type.value} value={type.value}>
@@ -234,7 +216,7 @@ export default function ColumnMapper({
                     ))}
                   </select>
                 </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">
+                <td className="px-4 py-3 text-muted-foreground text-xs">
                   {previewValue(mapping.sourceColumn)}
                 </td>
                 <td className="px-4 py-3 text-center">
@@ -253,21 +235,22 @@ export default function ColumnMapper({
 
       {/* Add Mapping Button */}
       <button
+        type="button"
         onClick={addMapping}
-        className="w-full py-3 border-2 border-dashed border-border rounded-lg text-muted-foreground font-medium hover:border-muted-foreground/50 hover:text-foreground transition-colors"
+        className="w-full py-3 border-2 border-dashed border-border rounded-lg text-muted-foreground font-medium hover:border-muted-foreground hover:text-foreground transition-colors"
       >
         + Add Column Mapping
       </button>
 
       {/* Validation Message */}
       {!allRequiredFieldsMapped && (
-        <div className="flex items-start gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+          <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-medium text-yellow-800">
+            <p className="font-medium text-yellow-500">
               Required fields not mapped
             </p>
-            <p className="text-sm text-yellow-700">
+            <p className="text-sm text-yellow-500/80">
               Please map all required fields:{" "}
               {template.requiredFields
                 .filter((f) => !mappings.some((m) => m.targetField === f))
@@ -278,7 +261,7 @@ export default function ColumnMapper({
       )}
 
       {allRequiredFieldsMapped && (
-        <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+        <div className="flex items-center gap-2 p-4 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400">
           <Check className="w-5 h-5" />
           <span className="font-medium">All required fields are mapped!</span>
         </div>

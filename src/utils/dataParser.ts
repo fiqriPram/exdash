@@ -240,7 +240,7 @@ export function autoMapColumns(
     [key: string]: { keywords: string[]; dataType: ColumnMapping["dataType"] };
   } = {
     date: {
-      keywords: ["date", "tanggal", "tgl", "time", "waktu"],
+      keywords: ["date", "tanggal", "tgl", "time", "waktu", "datetime", "timestamp", "day", "bulan", "year", "tahun"],
       dataType: "date",
     },
     amount: {
@@ -252,11 +252,15 @@ export function autoMapColumns(
         "price",
         "value",
         "jumlah",
+        "saldo",
+        "debit",
+        "credit",
+        "balance",
       ],
       dataType: "currency",
     },
     category: {
-      keywords: ["category", "kategori", "type", "jenis", "group"],
+      keywords: ["category", "kategori", "type", "jenis", "group", "klasifikasi"],
       dataType: "string",
     },
     description: {
@@ -267,25 +271,34 @@ export function autoMapColumns(
         "keterangan",
         "notes",
         "catatan",
+        "info",
+        "information",
       ],
       dataType: "string",
     },
     name: {
-      keywords: ["name", "nama", "person", "student", "employee"],
+      keywords: ["name", "nama", "person", "student", "employee", "karyawan", "siswa", "pelanggan", "customer"],
       dataType: "string",
     },
-    status: { keywords: ["status", "state", "condition"], dataType: "string" },
+    status: { keywords: ["status", "state", "condition", "keadaan"], dataType: "string" },
     quantity: {
-      keywords: ["quantity", "qty", "jumlah", "count"],
+      keywords: ["quantity", "qty", "jumlah", "count", "banyak", "unit"],
       dataType: "number",
     },
+    reference: {
+      keywords: ["reference", "ref", "no", "number", "nomor", "id", "kode"],
+      dataType: "string",
+    },
   };
+
+  const mappedColumns = new Set<string>();
 
   requiredFields.forEach((field) => {
     const pattern = fieldPatterns[field];
     if (!pattern) return;
 
     const matchedColumn = columns.find((col) =>
+      !mappedColumns.has(col) &&
       pattern.keywords.some((keyword) =>
         col.toLowerCase().includes(keyword.toLowerCase()),
       ),
@@ -296,6 +309,30 @@ export function autoMapColumns(
         sourceColumn: matchedColumn,
         targetField: field,
         dataType: pattern.dataType,
+      });
+      mappedColumns.add(matchedColumn);
+    }
+  });
+
+  // Add unmapped columns as custom fields
+  columns.forEach((col) => {
+    if (!mappedColumns.has(col)) {
+      // Guess data type based on column name
+      let dataType: ColumnMapping["dataType"] = "string";
+      const lowerCol = col.toLowerCase();
+      
+      if (lowerCol.includes("date") || lowerCol.includes("tanggal") || lowerCol.includes("time") || lowerCol.includes("waktu")) {
+        dataType = "date";
+      } else if (lowerCol.includes("amount") || lowerCol.includes("total") || lowerCol.includes("price") || lowerCol.includes("harga") || lowerCol.includes("nominal") || lowerCol.includes("jumlah") || lowerCol.includes("qty") || lowerCol.includes("quantity")) {
+        dataType = "currency";
+      } else if (lowerCol.includes("no") || lowerCol.includes("number") || lowerCol.includes("id") || lowerCol.includes("kode")) {
+        dataType = "number";
+      }
+      
+      mappings.push({
+        sourceColumn: col,
+        targetField: col, // Use column name as target field for unmapped columns
+        dataType,
       });
     }
   });

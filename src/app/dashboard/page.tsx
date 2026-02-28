@@ -225,8 +225,31 @@ export default function Dashboard() {
     setColumns(fileColumns);
     setError("");
     
-    // Validate required columns before proceeding
-    const requiredColumns = selectedTemplate.requiredFields;
+    // Auto-detect template based on file columns
+    const lowerColumns = fileColumns.map(c => c.toLowerCase());
+    
+    const findBestTemplate = () => {
+      let bestMatch = REPORT_TEMPLATES[0];
+      let maxMatches = 0;
+      
+      for (const template of REPORT_TEMPLATES) {
+        const matches = template.requiredFields.filter(field => 
+          lowerColumns.some(col => col.includes(field.toLowerCase().replace('_', '')) || col.includes(field.toLowerCase()))
+        ).length;
+        
+        if (matches > maxMatches) {
+          maxMatches = matches;
+          bestMatch = template;
+        }
+      }
+      return bestMatch;
+    };
+    
+    const detectedTemplate = findBestTemplate();
+    setSelectedTemplate(detectedTemplate);
+    setReportConfig(prev => ({ ...prev, template: detectedTemplate }));
+    
+    const requiredColumns = detectedTemplate.requiredFields;
     
     try {
       const validationResponse = await fetch("/api/validate", {
@@ -242,13 +265,12 @@ export default function Dashboard() {
         const errorData = await validationResponse.json();
         if (errorData.missing && errorData.missing.length > 0) {
           setError(
-            `Missing required columns: ${errorData.missing.join(", ")}. Please upload a CSV file with all required columns for the ${selectedTemplate.name} template.`
+            `Note: Some expected columns were not found: ${errorData.missing.join(", ")}. The system will try to generate the ${detectedTemplate.name} report with available columns.`
           );
-          return;
         }
       }
 
-      // Validation passed, proceed to mapping step
+      // Proceed to mapping step regardless of validation
       setCurrentStep(1);
       
       // Fetch preview data
@@ -277,7 +299,7 @@ export default function Dashboard() {
 
   const handleSaveMappingAndGenerate = async () => {
     if (!fileId || mappings.length === 0) {
-      setError("Please configure column mappings first");
+      setError("Please upload a file and configure column mappings first");
       return;
     }
 
@@ -560,39 +582,6 @@ export default function Dashboard() {
                   </p>
                   <FileUploadAPI onUploadComplete={handleUploadComplete} onError={handleError} />
                 </div>
-                <div className="bg-background rounded-xl shadow-sm border border-border p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">Select Report Template</h3>
-                  <div className="space-y-3">
-                    {REPORT_TEMPLATES.map((template) => (
-                      <label
-                        key={template.id}
-                        className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                          selectedTemplate.id === template.id
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-muted-foreground"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="template"
-                          value={template.id}
-                          checked={selectedTemplate.id === template.id}
-                          onChange={() => setSelectedTemplate(template)}
-                          className="mt-1 w-4 h-4 text-primary"
-                        />
-                        <div>
-                          <p className="font-semibold text-foreground">{template.name}</p>
-                          <p className="text-sm text-muted-foreground">{template.description}</p>
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {template.requiredFields.map((field) => (
-                              <span key={field} className="px-2 py-0.5 bg-destructive/10 text-destructive text-xs rounded">{field} *</span>
-                            ))}
-                          </div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
               </div>
             )}
 
@@ -614,7 +603,7 @@ export default function Dashboard() {
                       </button>
                       <button
                         onClick={handleSaveMappingAndGenerate}
-                        disabled={!allRequiredFieldsMapped || isLoading}
+                        disabled={!fileId || mappings.length === 0 || isLoading}
                         className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                       >
                         {isLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</> : <><ArrowRight className="w-4 h-4" /> Generate Report</>}
